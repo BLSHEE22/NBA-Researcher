@@ -31,4 +31,8 @@ https://www.kaggle.com/nathanlauga/nba-games?select=teams.csv
 The CSV files from the site above must be downloaded and placed into a separate folder inside of the 
 repository folder.
 
+Run "boxscores.py" using the following command:
+
+python3 boxscores.py CSV_folder_name
+
 Have fun exploring NBA statistics!
