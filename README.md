@@ -28,5 +28,5 @@ The databases come thanks to Nathan Lauga, who compiled each one using the nba.c
 
 https://www.kaggle.com/nathanlauga/nba-games?select=teams.csv
 
-Each CSV file from this site (above) must be downloaded and placed into a folder called "2003-2019" inside of the 
-repository folder which also contains "boxscores.py."
+Each CSV file from the site above must be downloaded and placed into a separate folder inside of the 
+repository folder.
