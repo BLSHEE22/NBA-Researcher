@@ -30,3 +30,5 @@ https://www.kaggle.com/nathanlauga/nba-games?select=teams.csv
 
 Each CSV file from the site above must be downloaded and placed into a separate folder inside of the 
 repository folder.
+
+Have fun exploring NBA statistics!
