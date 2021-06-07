@@ -151,9 +151,9 @@ def analyze(displayed, home, away, game, homePlayers, awayPlayers, playerInfo, h
             msg = " scored "
         else:
             msg = " scored a team-high "
-        print(MVP)
+        # print(MVP)
         for i in range(0, len(MVP)): 
-            print(str(i) + ": " + str(MVP[i]))
+            # print(str(i) + ": " + str(MVP[i]))
             if i != 0:
                 if MVP[i] != '':
                     if "in" in MVP[i]:
