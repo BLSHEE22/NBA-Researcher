@@ -1,1 +1,11 @@
-Line 904 --> Create separate counts for both playerTeam's wins and losses
+Line 904 --> prove= Ben Simmons:76ers:TO>5:L
+
+MUST ALSO INPUT (in this case) --> loseReason= TO
+
+player:team:performance:result
+
+Proof yields a win/loss rate, in this case a loss rate (causedLosses/totalGames).
+
+Eventually, all players' win/loss rates for each particular specification should be ranked in a table.
+
+219
