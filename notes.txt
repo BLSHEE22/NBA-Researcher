@@ -8,9 +8,4 @@ Proof yields a win/loss rate, in this case a loss rate (causedLosses/totalGames)
 
 Eventually, all players' win/loss rates for each particular specification should be ranked in a table.
 
-Line 219 --> reqMVP player
-Line 859 --> reqMVP performance
-
-Change pSet to contain games with format:
-
-gameID:player:team:performance:
+Fix winReason and loseReason
