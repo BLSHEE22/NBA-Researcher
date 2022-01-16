@@ -1,3 +1,33 @@
+### TODO ###
+    # reject invalid team
+    # playoff games on the game table should be a different color
+    # add more color encoding to the statistical report
+    # have "performance" part of PTPR handle equations. And perhaps relations to other players!
+    # Add "huck" index, where a player's FGA can get too high where it yields a losing % > career losing %
+    # - minimum # of games per FGA# must be 10% of player's total career games
+    # Add "rivalry" feature, measures competitiveness of matchups
+    # Ask if the user wants to amend their search or start a new one
+    # SPLIT UP DISPLAY FUNC
+    # PROVE implications: e.g., Marcus Smart:FGA>14 => L (calculate percent chance)
+    # 'prove' category
+    # change year to season
+    # team, opp_team (instead of home_team, away_team)
+    # don't pick randomly from final gameList, iterate through (pass i to newSearch) or random no rep
+    # reject invalid team name
+    # get below 800 lines
+    # speed up winReason (use sets)
+    # display team's record for that season
+    # be able to look for games that contain more than one player (differentiate teammates vs. matchups)
+    # calculate player or team avg. of a statistic, either all-time or season-based
+    # display stats such as BLK and STL if they are higher than either REB or AST
+    # look for games with triple-double scorers
+    # CONDENSE EVERYTHING!!!!
+
+    ### IDEAS FOR USE ###
+    # tell a team where its strengths and weaknesses are (winReason)
+    # tell a team for what reason (statistically) they lose to a specific opponent (also winReason)
+    # tell a team when a player helps/harms them (performance)
+
 import csv
 import sys
 import math
@@ -24,14 +54,7 @@ def read_csv(filename):
         # table.pop(0) #remove first row of CSV
     return table #list of lists
 
-# how can I make specific searches? Ex. every time Marcus Smart shot over 11 times
-def query(game, stats):
-    ans = input("What statistic would you like to look at specifically?\n")
-    for i in range(len(stats)-1):
-        if stats[i] == ans:
-            print(stats[i] + ": " + game[i])
-
-# Display MVP's FG%, REB, AST as well
+# format blurb for a game based on its box score
 def analyze(displayed, home, away, game, homePlayers, awayPlayers, playerInfo, homeColor, awayColor, specs):
     stats = ["Date","GameID","Status","HomeID","AwayID","Season","IDHome","PTS","FG_PCT","FG3_PCT","FT_PCT","FTA","AST","REB","STL","BLK","TO"]
     statVerb = ["scored","shot","shot","made","got to the line","dished out","grabbed","stole the ball","had","had"]
@@ -74,6 +97,7 @@ def analyze(displayed, home, away, game, homePlayers, awayPlayers, playerInfo, h
                     reqMVP[-1] = "home"
                 else:
                     reqMVP[-1] = "away"
+            # check if player has the maxScore
             if x[26] == "": 
                 maxScore += 0 
             elif int(float(x[26])) > maxScore: 
@@ -139,55 +163,92 @@ def analyze(displayed, home, away, game, homePlayers, awayPlayers, playerInfo, h
         return notableList
 
     # appends MVP data to the main results list
-    def sendMVPData(req, MVP, results, lb):
+    def sendMVPData(req, MVP, results, lb, reqStat, alreadyMVP, reqStatNews):
+        #if(req):
+            #print("MVP: " + str(MVP))
+            #print("results: " + str(results))
+            #print("lb: " + str(lb))
         msg = ""
         lastMsg = ""
         term = [""," points (","","","FG_PCT","FG3M","FG3A","FG3_PCT","FTM","FTA","FT_PCT","OREB","DREB","rebounds","assists",
         "steals","blocks","turnovers","personal fouls","plus-minus"]
+        termTrans = ["Name","PTS","FGM","FGA","FG_PCT","FG3M","FG3A","FG3_PCT","FTM","FTA","FT_PCT","OREB","DREB","REB","AST",
+        "STL","BLK","TO","PF","+/-"]
+        reqStatV = ["was","scored","made","attempted","shot","made","attempted","shot","made","attempted","shot","grabbed","grabbed",
+                    "grabbed","dished out","had","had","had","had","had a"]
+        reqStatN = ["himself","points","shots from the field","shots from the field","percent from the field","threes","threes","percent from three",
+                    "free throws","free throws","percent from the line","offensive rebounds","defensive rebounds","rebounds","assists","steals",
+                    "blocks","turnovers","personal fouls","plus/minus"]
         MVPdata = []
         reqOnlyData = []
+        req1 = True
+        req2 = True
+        intFloat = 0
         if req:
-            results.append("Requested player ")
-            msg = " scored "
-        else:
-            msg = " scored a team-high "
-        # print(MVP)
-        for i in range(0, len(MVP)): 
-            # print(str(i) + ": " + str(MVP[i]))
-            if i != 0:
-                if MVP[i] != '':
-                    if "in" in MVP[i]:
-                        lastMsg = MVP[i]
-                    elif MVP[i] != "home" and MVP[i] != "away":
-                        s = float(MVP[i])
-                        if s > lb or i == 4 or i == 7 or i==10 or i == 19:
-                            if i == 1:
-                                results.append(str(int(s)) + term[i])
-                            elif i == 2:
-                                results.append(str(int(s)) + "-")
-                            elif i == 3:
-                                results.append(str(int(s)) + ") ")
-                            elif i > 12 and i < 18:
-                                MVPdata.append((str(s), term[i]))
-                            elif i == 4 or i == 7 or i == 10:
-                                reqOnlyData.append((str(round(s,2)), term[i]))
-                            else:
-                                reqOnlyData.append((str(s), term[i]))
-                        else:
-                            results.append("N/A")
+            if reqStat != "":
+                if reqStat == "FG_PCT" or reqStat == "FG3_PCT" or reqStat == "FT_PCT":
+                    intFloat = str(float(MVP[termTrans.index(reqStat)])*100)
+                else:
+                    intFloat = str(int(float(MVP[termTrans.index(reqStat)])))
+                results.append("This game fit the criteria as " + str(MVP[0]) + " " 
+                                + reqStatV[termTrans.index(reqStat)] + " " + BOLDW
+                                + intFloat + RESET + " " + reqStatN[termTrans.index(reqStat)])
+                if not alreadyMVP:
+                    results.append(".\n\nHis main statline ")
+                    MVP[0] = "was "
+            elif not alreadyMVP:
+                results.append("Requested player ")
+                msg = " scored "
             else:
-                results.append(str(MVP[i]))
-                results.append(msg)
+                msg += ""
+                req1 = False
+        if not alreadyMVP:
+            for i in range(0, len(MVP)): 
+                if not req and i == 0:
+                    msg += " scored a team-high "
+                if i != 0:
+                    if MVP[i] != '':
+                        if "in" in MVP[i]:
+                            lastMsg = MVP[i]
+                        elif MVP[i] != "home" and MVP[i] != "away":
+                            s = float(MVP[i])
+                            if s > lb or i == 4 or i == 7 or i == 10 or i == 19:
+                                if i == 1:
+                                    results.append(str(int(s)) + term[i])
+                                elif i == 2:
+                                    results.append(str(int(s)) + "-")
+                                elif i == 3:
+                                    results.append(str(int(s)) + ") ")
+                                elif i == 4 or i == 7 or i == 10:
+                                    reqOnlyData.append((100*round(s,2), term[i]))
+                                elif i == 5:
+                                    MVP.append((int(s), term[i]))
+                                elif i > 12 and i < 18:
+                                    MVPdata.append((int(s), term[i]))
+                                else:
+                                    reqOnlyData.append((s, term[i]))
+                            else:
+                                results.append("N/A")
+                else:
+                    results.append(str(MVP[i]))
+                    results.append(msg)
+        else:
+            req2 = False
 
         def first(n):
             return n[0]   
 
         MVPdata = sorted(MVPdata, reverse=True, key=first)
-        print(MVPdata)
-        results.append("to go along with " + str(int(float(MVPdata[0][0]))) + " " + str(MVPdata[0][1]))
+        # print("MVPdata: " + str(MVPdata))
+        if len(MVPdata) > 0:
+            results.append("to go along with " + str(int(float(MVPdata[0][0]))) + " " + str(MVPdata[0][1]))
         if len(MVPdata) > 1:
             results.append(" and " + str(int(float(MVPdata[1][0]))) + " " + str(MVPdata[1][1]))
-        results.append(lastMsg + ".")
+        if req1 or req2:
+            results.append(lastMsg + ".")
+        else:
+            lastMsg = ""
+        # print(results)
 
     # formats row of table
     def printRow(i, s, wI, lI, color, reset, results):
@@ -212,22 +273,33 @@ def analyze(displayed, home, away, game, homePlayers, awayPlayers, playerInfo, h
             else:
                 printRow(i, dData, wI, lI, RESET, RESET, results)
 
+    reqMVPStat = ""
+
     # grab stats
     for x in specs:
-        if 'playerPerformance' in x:
+        if 'ptpr' in x:
             reqMVP[0] = x[1].split(":")[0]
+            perf = x[1].split(":")[2]
+            if ">" in perf: 
+                reqMVPStat = x[1].split(":")[2].split(">")[0]
+            elif "<" in perf: 
+                reqMVPStat = x[1].split(":")[2].split("<")[0]
+    # print(reqMVP)
+    # print(reqMVPStat)
     storeStats(homePlayers, maxHomeScore, homeMVP, homeData, reqMVP)
     storeStats(awayPlayers, maxAwayScore, awayMVP, awayData, reqMVP)
 
     # calculate stat differences
     for i in range(7,14):
+        # FG_PCT, FG3_PCT, or FT_PCT
         if i == 8 or i == 9 or i == 10:
             if game[rel[i-7]] != '':
                 homeData[i] = round(float(game[rel[i-7]]), 2)
             if game[rel[i-7]+7] != '':
                 awayData[i] = round(float(game[rel[i-7]+7]), 2)
+        # skip FTA
         elif i == 11:
-            statData[i] = None # skip FTA
+            statData[i] = None
         else:
             if game[rel[i-7]] != '':
                 homeData[i] = int(float(game[rel[i-7]]))
@@ -235,10 +307,13 @@ def analyze(displayed, home, away, game, homePlayers, awayPlayers, playerInfo, h
                 awayData[i] = int(float(game[rel[i-7]+7]))
 
     for i in range(7, 17):
+        # round percentage stats
         if i == 8 or i == 9 or i == 10:
             statData[i] = round(homeData[i] - awayData[i], 2)
         else:
             statData[i] = homeData[i] - awayData[i]
+    
+    # print(statData)
             
     if statData[7] > 0:
         setWinner(wLData, home, away, homeMVP, maxHomeScore, game[7], game[14])
@@ -340,6 +415,7 @@ def analyze(displayed, home, away, game, homePlayers, awayPlayers, playerInfo, h
         madeI = 0
         attI = 0
         minAtt = 0
+        # FGM, FGA, FTA, FG3A
         if playersI == 11 or playersI == 14 or playersI == 16 or playersI == 17:
             if playersI == 16:
                 attI = playersI
@@ -354,19 +430,19 @@ def analyze(displayed, home, away, game, homePlayers, awayPlayers, playerInfo, h
 
         notableData = []
         if home == winner:
-            if reqMVP[6] == "home":
-                reqMVP[6] = " in the " + GREEN + "win" + RESET
+            if reqMVP[-1] == "home":
+                reqMVP[-1] = " in the " + GREEN + "win" + RESET
             else:
-                reqMVP[6] = " in the " + RED + "loss" + RESET
+                reqMVP[-1] = " in the " + RED + "loss" + RESET
             if statI != 9:
                 notableData = evalNotable(homePlayers, playersI, madeI, attI, minAtt)
             else:
                 notableData = evalNotable(awayPlayers, playersI, madeI, attI, minAtt)
         else:
-            if reqMVP[6] == "away":
-                reqMVP[6] = " in the " + GREEN + "win" + RESET
+            if reqMVP[-1] == "away":
+                reqMVP[-1] = " in the " + GREEN + "win" + RESET
             else:
-                reqMVP[6] = " in the " + RED + "loss" + RESET
+                reqMVP[-1] = " in the " + RED + "loss" + RESET
             if statI != 9:
                 notableData = evalNotable(awayPlayers, playersI, madeI, attI, minAtt)
             else:
@@ -395,22 +471,31 @@ def analyze(displayed, home, away, game, homePlayers, awayPlayers, playerInfo, h
         # send winner MVP first, then loser MVP
         winMVP = []
         loseMVP = []
+        alreadyMVP = False
+        reqStatNews = True
 
         MVP.append(" in the " + GREEN + "win" + RESET)
-        sendMVPData(False, MVP, winMVP, 1)
+        sendMVPData(False, MVP, winMVP, 1, reqMVPStat, False, True)
         if MVP == homeMVP:
             awayMVP.append(" in the " + RED + "loss" + RESET)
-            sendMVPData(False, awayMVP, loseMVP, 1)
+            sendMVPData(False, awayMVP, loseMVP, 1, reqMVPStat, False, True)
         else:
             homeMVP.append(" in the " + RED + "loss" + RESET)
-            sendMVPData(False, homeMVP, loseMVP, 1)
+            sendMVPData(False, homeMVP, loseMVP, 1, reqMVPStat, False, True)
 
         # if requested player, send statline
         reqMVPDis = []
-        if reqMVP[1] != '' and reqMVP[0] != homeMVP[0] and reqMVP[0] != awayMVP[0]:
-            sendMVPData(True, reqMVP, reqMVPDis, -1)
+        reqUsed = False
+        if reqMVP[1] != '':
+            if reqMVP[0] == homeMVP[0]:
+                alreadyMVP = True
+            elif reqMVP[0] == awayMVP[0]:
+                alreadyMVP = True
+            sendMVPData(True, reqMVP, reqMVPDis, -1, reqMVPStat, alreadyMVP, reqStatNews)
         else:
             reqMVPDis.append('N/A')
+        
+        # print(results)
 
         # multiply percentages by 100 for readability
         for i in range(8, 11):
@@ -434,7 +519,7 @@ def analyze(displayed, home, away, game, homePlayers, awayPlayers, playerInfo, h
             badStatNames.append("")
 
         def last(n):
-                return n[3]
+            return n[3]
 
         # invert turnover number
         statData[16] *= -1
@@ -444,15 +529,15 @@ def analyze(displayed, home, away, game, homePlayers, awayPlayers, playerInfo, h
             fullStatData.append([stats[i], homeData[i], awayData[i], statData[i]])
         ordStatData = sorted(fullStatData, key=last, reverse=True)
 
-        results.append("\nW: " + "\033[1;38;5;" + winnerColor + winner + RESET + ", " + "L: " + 
+        results.append("\n" + game[0] + " W: " + "\033[1;38;5;" + winnerColor + winner + RESET + ", " + "L: " + 
         "\033[1;38;5;" + loserColor + loser + RESET + "\n\n")
 
         # print out score before printing table
         if winner == home:
-            results.append("Score:   " + str(homeData[7]) + "  -  " + str(awayData[7]) + RESET + "\n\n")
+            results.append("Score:     " + str(homeData[7]) + "  -  " + str(awayData[7]) + RESET + "\n\n")
             printTable(goodStatNames, badStatNames, 1, 2, ordStatData, results)
         else:
-            results.append("Score:   " + str(awayData[7]) + "  -  " + str(homeData[7]) + RESET + "\n\n")
+            results.append("Score:     " + str(awayData[7]) + "  -  " + str(homeData[7]) + RESET + "\n\n")
             printTable(goodStatNames, badStatNames, 2, 1, ordStatData, results)
 
         # sum of stat differences correlates with competitiveness
@@ -516,10 +601,12 @@ def analyze(displayed, home, away, game, homePlayers, awayPlayers, playerInfo, h
         results.append(homeColor)
         results.append(awayColor)
 
+    # print(results)
     return(results)
 
     # END OF ANALYZE--------------------------------------------------------------------------------------
 
+# prints a separator line
 def printSeparator():
     # print separator line
     separator = ['-'] * 100
@@ -527,31 +614,11 @@ def printSeparator():
         print(separator[j], end="")
     print()
     
+# main UI and search filter - contains display() which utilizes analyze()
 def welcome(gameData, attributes, teamData, gameDetails, playerInfo, playerData):
-    ### TODO ###
-    # SPLIT UP DISPLAY FUNC
-    # change year to season
-    # team1, team2 (instead of home_team, away_team)
-    # don't pick randomly from final gameList, iterate through (pass i to newSearch), or random no rep
-    # add category 'performance'
-    # e.g. "Marcus Smart", "TO<5", "win" (optional param), use sets!
-    # reject invalid team name
-    # get below 800 lines
-    # speed up winReason (use sets)
-    # display team's record for that season
-    # be able to look for games that contain more than one player (differentiate teammates vs. matchups)
-    # calculate player or team avg. of a statistic, either all-time or season-based
-    # display stats such as BLK and STL if they are higher than either REB or AST
-    # look for games with triple-double scorers
-    # CONDENSE EVERYTHING!!!!
-
-    ### IDEAS FOR USE ###
-    # tell a team where its strengths and weaknesses are (winReason)
-    # tell a team for what reason (statistically) they lose to a specific opponent (also winReason)
-    # tell a team when a player helps/harms them (performance)
 
     #### DISPLAY #### -- display analysis of game ----------------------------------------------------
-    def display(displayed, gameList, gameI, gameData, teamData, gameDetails, playerInfo, stat, name, specs):
+    def display(displayed, gameList, gameI, gameData, teamData, gameDetails, playerInfo, stat, name, specs, q):
 
         # replay prompt to analyze a new game ---------------------------------------------------------
         def newSearch(msg, s, n, specs):
@@ -564,32 +631,44 @@ def welcome(gameData, attributes, teamData, gameDetails, playerInfo, playerData)
             if prompt == msg + "Would you like to analyze another ":
                 prompt += "random"
             if s == "random":
-                replay = input(prompt + " game? (y or n)\n\n")
-                if replay == 'y': 
+                replay = input(prompt + " game? (y or n or quit)\n\n")
+                if replay.lower() == 'y': 
                     newGameI = random.randint(0, len(gameData)-1)
                     print()
-                    display(True, gameList, newGameI, gameData, teamData, gameDetails, playerInfo, stat, name, specs)
-                elif replay == 'n':
+                    display(True, gameList, newGameI, gameData, teamData, gameDetails, playerInfo, stat, name, specs, "")
+                elif replay.lower() == 'n':
                     print()
                     welcome(gameData, attributes, teamData, gameDetails, playerInfo, playerData)
+                elif replay.lower() == 'quit':
+                    print("\nQuitting...\n")
+                    quit()
                 else:
                     print()
                     newSearch("I'm sorry, I didn't quite get that. ", s ,n, specs)
             else:
-                replay = input(prompt + " game? (y or n)\n\n")
-                if replay == 'y': 
+                replay = input(prompt + " game? (y or n or quit)\n\n")
+                if replay.lower() == 'y': 
                     if len(gameList) > 1:
-                        ind = random.randint(0, len(gameList)-1)
+                        for i in range(len(gameList)):
+                            if gameList[i] == pickedGame:
+                                if i == len(gameList)-1:
+                                    ind = 0
+                                else:
+                                    ind = i + 1
+                        # ind = random.randint(0, len(gameList)-1)
                         newGameI = gameList[ind]
                     elif len(gameList) == 1:
                         newGameI = gameList[0]
                     else:
                         newGameI = random.randint(0, len(gameData)-1)
                     print()
-                    display(True, gameList, newGameI, gameData, teamData, gameDetails, playerInfo, stat, name, specs)
-                elif replay == 'n': 
+                    display(True, gameList, newGameI, gameData, teamData, gameDetails, playerInfo, stat, name, specs, "y")
+                elif replay.lower() == 'n': 
                     print()
                     welcome(gameData, attributes, teamData, gameDetails, playerInfo, playerData)
+                elif replay.lower() == "quit":
+                    print("\nQuitting...\n")
+                    quit()
                 else:
                     print()
                     newSearch("I'm sorry, I didn't quite get that. ", s ,n, specs)
@@ -605,12 +684,12 @@ def welcome(gameData, attributes, teamData, gameDetails, playerInfo, playerData)
         away = ""
 
         # classify the home and away team
-        for x in teamData:
-            teams.append(x[5])
-            if x[1] == game[3]:
-                home = x[5]
-            elif x[1] == game[4]:
-                away = x[5]
+        for i in range(len(teamData)-4):
+            teams.append(teamData[i][5])
+            if teamData[i][1] == game[3]:
+                home = teamData[i][5]
+            elif teamData[i][1] == game[4]:
+                away = teamData[i][5]
         
         # store home and away players in their respective list
         for x in gameDetails:
@@ -667,14 +746,12 @@ def welcome(gameData, attributes, teamData, gameDetails, playerInfo, playerData)
 
         results = []
         if displayed:
-            print("Today we'll be looking at " + BOLDW + game[0] + RESET + "'s " + '\033[1;38;5;' + homeColor + home + RESET + " vs. " + '\033[1;38;5;' + awayColor + away + RESET + BOLDW + playoff + RESET + "matchup.\n", RESET) 
-            q = "Do you want to analyze? (y or n or quit) \n\n" 
             # recursive loop where user can decide whether or not to analyze
             def studyGame(ques):
-                inp = input(ques)
+                inp = ques
                 if inp == "y":
                     print() 
-                    print("***** Analyzing ***** ")
+                    print("********************* Analyzing ********************* ")
                     results = analyze(displayed, home, away, game, homePlayers, awayPlayers, playerInfo, homeColor, awayColor, specs)
                     for x in results:
                         if x != results[len(results)-1]:
@@ -684,12 +761,17 @@ def welcome(gameData, attributes, teamData, gameDetails, playerInfo, playerData)
                     print()
                     welcome(gameData, attributes, teamData, gameDetails, playerInfo, playerData)
                 elif inp == "quit":
-                    print("\nQuitting...\n")
+                    print("\nQuitting... \n")
                 else:
                     print("\nI'm sorry, I didn't quite get that.\n")
                     studyGame(ques)
-                    
-            studyGame(q)
+
+            if q == "y" or q == "n":
+                studyGame(q)
+            else:
+                print("Let's look specifically at " + BOLDW + game[0] + RESET + "'s " + '\033[1;38;5;' + homeColor + home + RESET + " vs. " + '\033[1;38;5;' + awayColor + away + RESET + BOLDW + playoff + RESET + "matchup.\n", RESET) 
+                a = input("Do you want to analyze? (y or n or quit) \n\n")        
+                studyGame(a)
         else:
             results = analyze(displayed, home, away, game, homePlayers, awayPlayers, playerInfo, homeColor, awayColor, specs)
             results.append(home)
@@ -706,46 +788,82 @@ def welcome(gameData, attributes, teamData, gameDetails, playerInfo, playerData)
             else:
                 inpString += str(searchOptions[i]) + "=" + str(catList[i]) + ", "
         inpString += str(searchOptions[len(searchOptions)-1]) + "\n\n"
-        if ans != 'go': 
-            ans3 = input(inpString)
+        if ans != 'go' or (ans == 'go' and not specs): 
+            if ans != 'go':
+                ans3 = input(inpString).lower()
+            else:
+                ans3 = "random game"
             if ans3 in searchOptions: 
-                ans2 = input("\nWhich " + ans3 + " would you like to select?\n\n")
-                print()
-                if ans3 == 'month': 
-                    if ans2 in monthNames:
-                        catList[searchOptions.index(ans3)] = "*" + ans2 + "*"
-                        ans2 = monthNums[monthNames.index(ans2)]
-                        if len(specs) != 0 and ans3 == ans and ans3 not in catList and ans in monthNames:
-                            specs.remove(specs[len(specs)-1])
-                        specs.append((ans3, ans2)) 
-                        completeSearch(ans3) 
-                    else:
-                        print("That's not a valid month.\n")
-                        completeSearch(ans3) 
-                else:
-                    # correct an already entered param
-                    if len(specs) != 0 and ans3 == ans and ans3 not in catList:
-                        specs.remove(specs[-1])
-                    # don't append special categories
-                    if ans3 != "winReason" and ans3 != "playerPerformance":
-                        specs.append((ans3, ans2)) 
-                    elif ans3 == "playerPerformance":
-                        # perf = [True, ans2.split(":")[0], ans2.split(":")[1]]
-                        specs.append((ans3, ans2))
-                    else:
-                        if ":" in ans2:
-                            wReason[0] = (True, ans2.split(":")[0], ans2.split(":")[1])
+                if ans3 == "random game":
+                    print("\n" + BOLDW + "A random game will be chosen." + RESET + "\n")
+                    ans2 = "random"
+                    pickedGame = random.randint(0, len(gameData)-1)
+                    print("Searching...\n")
+                    return 
+                    # completeSearch("go")
+                else: 
+                    ans2 = input("\nWhich " + ans3 + " would you like to select?\n\n")
+                    print()
+                    if ans3 == 'month': 
+                        if ans2 in monthNames:
+                            catList[searchOptions.index(ans3)] = "*" + ans2 + "*"
+                            ans2 = monthNums[monthNames.index(ans2)]
+                            print("ans3: " + ans3)
+                            print("ans : " + ans)
+                            print(catList)
+                            if len(specs) != 0 and ans3 == ans and ans3 not in catList:
+                                specs.remove(specs[len(specs)-1])
+                            specs.append((ans3, ans2)) 
+                            completeSearch(ans3) 
                         else:
-                            print("Please answer using the format \"home/away:stat\".\n")
+                            print(BOLDW + "That's not a valid month." + RESET + "\n")
+                            completeSearch(ans3) 
+                    elif ans3 == 'year':
+                        if ans2 in validYears:
+                            catList[searchOptions.index(ans3)] = "*" + ans2 + "*"
+                            if len(specs) != 0 and ans3 == ans and ans3 not in catList:
+                                specs.remove(specs[len(specs)-1])
+                            specs.append((ans3, ans2)) 
+                            completeSearch(ans3) 
+                        else:
+                            print(BOLDW + "That's not a valid year." + RESET + "\n")
                             completeSearch(ans3)
-                    catList[searchOptions.index(ans3)] = "*" + ans2 + "*"
-                    completeSearch(ans3) 
+                    else:
+                        # if newly entered searchOption is already lingering in specs, update it
+                        if len(specs) != 0 and ans3 == ans and ans3 not in catList:
+                            specs.remove(specs[-1])
+                            catList[searchOptions.index(ans3)] = "*" + ans2 + "*"
+                        # don't append special categories
+                        if ans3 != "win_reason" and ans3 != "ptpr":
+                            specs.append((ans3, ans2))
+                            catList[searchOptions.index(ans3)] = "*" + ans2 + "*" 
+                        elif ans3 == "ptpr":
+                            # perf = [True, ans2.split(":")[0], ans2.split(":")[1]]
+                            if ans2.count(":") == 3 or ":career" in ans2: 
+                                specs.append((ans3, ans2))
+                                catList[searchOptions.index(ans3)] = "*" + ans2 + "*"
+                            else:
+                                print(BOLDW + "Please answer in the format 'Player_name:Team:Performance:Result'." + RESET + "\n")
+                                print(BOLDW + "You can also use the format 'Player_name:career' for all games played by the player." + RESET + "\n")
+                        elif ans3 == "win_reason":
+                            if ":" in ans2:
+                                wReason[0] = (True, ans2.split(":")[0], ans2.split(":")[1])
+                                catList[searchOptions.index(ans3)] = "*" + ans2 + "*"
+                            elif ans2 in legalStats:
+                                wReason[0] = (True, "any", ans2)
+                                catList[searchOptions.index(ans3)] = "*" + ans2 + "*"
+                            else:
+                                print(BOLDW + "Please answer using the format \"home/away:stat\"." + RESET + "\n")
+                        completeSearch(ans3) 
             elif ans3 != 'go':
                 if ans3 == "random":
-                    print("\nChoosing random game...\n")
+                    print("\nA random game will be chosen.\n")
                     ans2 = "random"
                     pickedGame = random.randint(0, len(gameData)-1)
                     completeSearch("go")
+                elif ans3 == "quit":
+                    print("\nQuitting... \n")
+                    quit()
                 else:
                     print("\nI'm sorry, I didn't quite get that.\n") 
                     completeSearch(ans3)
@@ -753,10 +871,13 @@ def welcome(gameData, attributes, teamData, gameDetails, playerInfo, playerData)
                 print()
                 completeSearch(ans3)
         else:
+            print("Searching...\n")
             return 
     
     # create set of all player performances, keep those that meet criteria
     def createPlayerSet(on):
+        # perfData = ["Ben Simmons", "76ers", "TO>5", "L"]
+        teamTrans = {x[4] : x[5] for x in teamData}
         gameDetSet = {"1"}
         if playerParam:
             for i in range(0, len(gameDetails)):
@@ -767,27 +888,34 @@ def welcome(gameData, attributes, teamData, gameDetails, playerInfo, playerData)
                         addString += ":any:"
                     else:
                         addString += ":" + gameDetails[i][5] + ":"
-                    if ">" in perfData[1]:
-                        pStat = perfData[1].split(">")[0]
-                        statVal = perfData[1].split(">")[1]
+                    if perfData[1] == "any":
+                        addString += "any:"
+                    else:
+                        addString += teamTrans[gameDetails[i][2]] + ":"
+
+                    if ">" in perfData[2]:
+                        pStat = perfData[2].split(">")[0]
+                        statVal = perfData[2].split(">")[1]
                         if gameDetails[i][playerInfo.index(pStat)] != "":
                             if float(gameDetails[i][playerInfo.index(pStat)]) > float(statVal):
                                 # print(float(gameDetails[i][playerInfo.index(pStat)]))
-                                addString += perfData[1]
-                    elif "<" in perfData[1]:
-                        pStat = perfData[1].split("<")[0]
-                        statVal = perfData[1].split("<")[1]
+                                # perfData[0] = gameDetails[i][5]
+                                addString += perfData[2] + ":"
+                    elif "<" in perfData[2]:
+                        pStat = perfData[2].split("<")[0]
+                        statVal = perfData[2].split("<")[1]
                         if gameDetails[i][playerInfo.index(pStat)] != "":
                             if float(gameDetails[i][playerInfo.index(pStat)]) < float(statVal):
                                 # print(float(gameDetails[i][playerInfo.index(pStat)]))
-                                addString += perfData[1] 
+                                # perfData[0] = gameDetails[i][5]
+                                addString += perfData[2] + ":"
                     else:
-                        addString += "any"
+                        addString += "any:"
+                    addString += perfData[3]
 
                 gameDetSet.add(addString + ":")
 
         gameDetSet.remove("1")
-
         return gameDetSet
 
     # if reason, keep home/away games won by reason
@@ -805,7 +933,7 @@ def welcome(gameData, attributes, teamData, gameDetails, playerInfo, playerData)
                 loser = ""
                 if len(gameList) == 0:
                     break
-                coll.append(display(False, gameList, x, gameData, teamData, gameDetails, playerInfo, ans1, ans2, specs)) 
+                coll.append(display(False, gameList, x, gameData, teamData, gameDetails, playerInfo, ans1, ans2, specs, "")) 
                 if stat != "any":
                     statReason = color + stat 
                 else:
@@ -827,11 +955,15 @@ def welcome(gameData, attributes, teamData, gameDetails, playerInfo, playerData)
     ##### WELCOME #####
 
     # data for search and welcome screen
-    searchOptions = ["year","month","day","home_team","away_team","winReason","playerPerformance","random game"]
+    searchOptions = ["year","month","day","home_team","away_team","win_reason","ptpr","random game"]
+    # lowercase version of searchOptions
+    #searchOpLower = [x.lower() for x in searchOptions]
     # display version of searchOptions
-    searchOpDis = ["year","month","day","home_team","away_team","winReason","playerPerformance","random game"]
+    searchOpDis = ["year","month","day","home_team","away_team","win_reason","ptpr","random_game"]
     catList = ["?","?","?","?","?","?","?","?","?"]
     searchI = [0,0,0,3,4,1,1]
+    legalStats = ["FG_PCT","FG3_PCT","FT_PCT","FTA","AST","REB","STL","BLK","TO"]
+    validYears = [str(2002 + i) for i in range(1, 20)]
     monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"]
     monthNums = ["01","02","03","04","05","06","07","08","09","10","11","12"]
     specs = [] # holds tuple responses to searchOptions, (category, response)
@@ -845,18 +977,25 @@ def welcome(gameData, attributes, teamData, gameDetails, playerInfo, playerData)
     completeSearch("") # fills specs[]
     ans1 = ""
     ans2 = ""
-    print("Searching...\n")
 
-    # if playerPerformance in specs, parse
+    # if ptpr in specs, parse, also translate "career" if present
     perfData = []
     playerParam = False
     for x in specs:
-        if "playerPerformance" in x:
-            perfData = x[1].split(":")
+        pCareer = x
+        if "ptpr" in x:
+            if "career" in x[1]:
+                specs.remove(x)
+                pCareer = (x[0], x[1][:x[1].index(":")] + ":any:any:any")
+                specs.append(pCareer)
+            perfData = pCareer[1].split(":")
             playerParam = True
 
+    # specs are fully ready
+
+    print("Finding games that meet the parameters...\n")
+            
     # create set of all player performances
-    print("Creating player set...")
     pSet = createPlayerSet(playerParam)
 
     # does game(i) contain all of the specifications?
@@ -874,7 +1013,10 @@ def welcome(gameData, attributes, teamData, gameDetails, playerInfo, playerData)
                         x = teamData[k][5]
             else:
                 x = str(x) + ":" + specs[j][1] + ":"
-                # print(x)
+                #print(x)
+                #if specs[j][1].split(":")[0] == "any":
+                    #if x.split(":")[2] in pSet:
+                        #specs[j][1] = str()
                 if x in pSet:
                     x = specs[j][1]
 
@@ -888,34 +1030,290 @@ def welcome(gameData, attributes, teamData, gameDetails, playerInfo, playerData)
     resultList = []
     winCol = ""
     loseCol = ""
-    print("\nDisplaying results...\n")
-    for x in gameList:
-        validGame = display(False, gameList, x, gameData, teamData, gameDetails, playerInfo, ans1, ans2, specs)
-        if str(validGame[-3]) + " " == validGame[0]:
-            winCol = validGame[-5]
-            loseCol = validGame[-4]
-        if str(validGame[-2]) + " " == validGame[0]: 
-            winCol = validGame[-4]
-            loseCol = validGame[-5]
-        resultList.append(gameData[x][0] + " W: \033[1;38;5;" + winCol + validGame[0] + RESET + "L: \033[1;38;5;" + loseCol + validGame[2] + RESET)
-    finalResultList = sorted(resultList, reverse=True)
-    for x in finalResultList:
-        print(x)
+    ws = 0
+    ls = 0
+
+    rand = False
+    plperf = False
+    tf = ""
+    finalTf = ""
+    finalPerf = ""
+    finalAction = ""
+
+    for x in specs:
+        if "year" in x:
+            tf = x[1]
+        if "ptpr" in x:
+            plperf = True
+            playerName = x[1].split(":")[0]
+            team = x[1].split(":")[1]
+            performance = x[1].split(":")[2]
+            result = x[1].split(":")[3]
+
+    print("Displaying results...\n")
+    
+    if not specs:
+        gameList.clear()
+        rand = True
+    
+    allTeams = []
+    for i in range(len(teamData)-4):
+        allTeams.append(teamData[i][5])
+    sortTeams = sorted(allTeams)
+
+    # ['76ers-45m', 'Bucks-106m', 'Bulls-160m', 'Cavaliers-88m', 'Celtics-34m', 'Clippers-203m', 'Grizzlies-86m', 
+    # 'Hawks-9m', 'Heat-198m', 'Hornets-87m', 'Jazz-148m', 'Kings-98m', 'Knicks-202m', 'Lakers-129m', 'Magic-33m', 
+    # 'Mavericks-27m', 'Nets-153m', 'Nuggets-220m', 'Pacers-226m', 'Pelicans-216m', 'Pistons-198m', 'Raptors-1m', 
+    # 'Rockets-196m', 'Spurs-245m', 'Suns-214m', 'Thunder-166m', 'Timberwolves-46m', 'Trail Blazers-124m', 
+    # 'Warriors-221m', 'Wizards-69m']
+
+    teamColors = ['45m','106m','160m','88m','34m','203m','86m','9m','198m','87m','148m','98m','202m','129m','33m',
+                '27m','153m','220m','226m','216m','198m','1m','196m','245m','214m','166m','46m','124m','221m','69m']
+
+    playerTeams = set()
+
+    # get wNick, lNick, wColor, lColor, and you're free from extra display!!!
+    for x in gameList:  
+        homePts = gameData[x][7]
+        homeTeam = gameData[x][3]
+        awayPts = gameData[x][14]
+        awayTeam = gameData[x][4]
+        wTeam = ""
+        wPts = ""
+        lTeam = ""
+        lPts = ""
+        lNick = "" # validGame[2]
+        wNick = "" # validGame[0]
+        date = gameData[x][0] # validGame[-1]
+        season = gameData[x][5]
+        awayNick = "" # validGame[-2]
+        homeNick = "" # validGame[-3
+        wColor = "" # validGame[-4]
+        lColor = "" # validGame[-5]
+        # teamSeasons = []
+        if float(homePts) > float(awayPts):
+            wTeam = homeTeam
+            wPts = str(int(float(homePts)))
+            lTeam = awayTeam
+            lPts = str(int(float(awayPts)))
+        else:
+            wTeam = awayTeam
+            wPts = str(int(float(awayPts)))
+            lTeam = homeTeam
+            lPts = str(int(float(homePts)))
+        for y in teamData:
+            if y[1] == wTeam:
+                wNick = y[5]
+            if y[1] == lTeam:
+                lNick = y[5]
+            if y[1] == homeTeam:
+                homeNick = y[5]
+            if y[1] == awayTeam:
+                awayNick = y[5]
+        wColor = teamColors[sortTeams.index(wNick)]
+        lColor = teamColors[sortTeams.index(lNick)]
+        homeColor = teamColors[sortTeams.index(homeNick)]
+        awayColor = teamColors[sortTeams.index(awayNick)]
+
+        if plperf:
+            teamSeasons = []
+            if team != "any":
+                for i in range(2003, 2022):
+                    teamSeasons.append(([team], str(i)))
+                if wNick == team: # for validGame, + " "
+                    ws += 1
+                elif lNick == team:
+                    ls += 1
+            else:
+                maxSeason = ("", 0)
+                minSeason = ("", 1000000)
+                for p in playerData:
+                    if playerName in p:
+                        teamSeasons.append(([y[5] for y in teamData if y[1] == p[1]], p[3]))
+                for t in teamSeasons:
+                    if int(list(t[1])[0]) > int(maxSeason[1]):
+                        maxSeason = (t[0], t[1])
+                        # print("Max: " + str(maxSeason))
+                    if int(list(t[1])[0]) < int(minSeason[1]):
+                        minSeason = (t[0], t[1])
+                        # print("Min: " + str(minSeason))
+                
+                i = int(maxSeason[1])+1
+                #print(i)
+                while i < 2021:
+                    teamSeasons.insert(0, (maxSeason[0], str(i)))
+                    i += 1
+                j = int(minSeason[1])-1
+                #print(j)
+                while j > 2002:
+                    teamSeasons.append((minSeason[0], str(j)))
+                    j -= 1
+
+                for y in teamSeasons:
+                    if playerTeams:
+                        playerTeams.add(y[0][0])
+
+                if ([wNick], list({y[5] for y in gameData if y[0] == date})[0]) in teamSeasons:
+                    ws += 1
+                elif ([lNick], list({y[5] for y in gameData if y[0] == date})[0]) in teamSeasons:
+                    ls += 1
+
+        homeColOG = "\033[1;38;5;" + homeColor
+        awayColOG = "\033[1;38;5;" + awayColor
+        wColOG= "\033[1;38;5;" + wColor
+        lColOG = "\033[1;38;5;" + lColor
+        playerWin = ""
+        playerLoss = ""
+        unNecG = 0
+        unNecW = 0
+        unNecL = 0
+        # print(([wNick], str(season)))
+        # print()
+        # print(teamSeasons)
+        if plperf:
+            unNecL -= 7
+            if ([wNick], str(season)) in teamSeasons:
+                playerWin = BGREEN
+                unNecW -= 7
+                unNecL += 9
+            else:
+                playerWin = ""
+            if ([lNick], str(season)) in teamSeasons:
+                playerLoss = BRED
+                unNecL += 2
+            else:
+                playerLoss = ""
+        if len(homeColor) == 2:
+            unNecG += 2
+        elif len(homeColor) == 3:
+            unNecG += 1
+        if len(awayColor) == 2:
+            unNecG += 2
+        elif len(awayColor) == 3:
+            unNecG += 1
+        if len(wColor) == 2:
+            unNecW += 2
+        elif len(wColor) == 3:
+            unNecW += 1
+        if len(lColor) == 2:
+            unNecL += 2
+        elif len(lColor) == 3:
+            unNecL += 1
+        gameInfo = str(date + " (" + homeColOG + homeNick + RESET + " @ " + awayColOG + awayNick + RESET + ")").ljust(70-(unNecG), " ")
+        winInfo = str(playerWin + "W" + RESET + ": " + wColOG + wNick + RESET).ljust(40-(unNecW), " ")
+        lossInfo = str(playerLoss + "L" + RESET + ": " + lColOG + lNick + RESET).ljust(40-(unNecL), " ")
+        winPtInfo = " (" + wPts + "-"
+        lossPtInfo = lPts + ")"
+        finalGameHeader = gameInfo + winInfo + lossInfo + winPtInfo + lossPtInfo
+        resultList.append(finalGameHeader)
+    resultList = list(set(resultList))
+    tempList = []
+    for i in range(len(resultList)):
+        for j in range(len(gameList)):
+            if resultList[i][:10] == gameData[gameList[j]][0]:
+                tempList.append((resultList[i], gameList[j]))
+                break
+
+    tempList = sorted(tempList, key=lambda tup:tup[0])
+    finalResultList = [x[0] for x in tempList]
+    gameList = [x[1] for x in tempList]
+    amend = False
+    goBack = False
+    for i in range(len(finalResultList)):
+        if i < 9:
+            print(str(i+1) + ":    " + finalResultList[i]) 
+        elif i < 99:
+            print(str(i+1) + ":   " + finalResultList[i])
+        elif i < 999:
+            print(str(i+1) + ":  " + finalResultList[i])
+        else:
+            print(str(i+1) + ": " + finalResultList[i])
     if len(gameList) != 0:
-        r = random.randint(0, len(gameList)-1)
-        print("\n" + str(len(gameList)) + " games found!\n")
-        pickedGame = gameList[r]
+        print("\n" + str(len(finalResultList)) + " games found!\n")
+        if plperf:
+            finalTeam = " as a member of the " + team
+            finalTf = ""
+            winPerc = round(float(ws)/len(gameList), 2)
+            if winPerc == 0.0:
+                finalResult = " won " + str(winPerc)[0] + "% of games"
+            elif winPerc == 1.0:
+                finalResult = " won " + str(winPerc)[0] + "00" + "% of games"
+            elif (winPerc*100) % 10 == 0:
+                finalResult = " won " + str(winPerc)[2:] + "0" + "% of games"
+            else:
+                finalResult = " won " + str(winPerc)[2:] + "% of games"
+            finalPerf = " when performing " + performance
+            if team == "any":
+                finalTeam = ""
+            if tf != "":
+                finalTf = " in " + tf
+            if result == "L":
+                finalResult = " lost " + str(round(float(ls)/len(gameList), 2))[2:] + "% of games"
+            if result == "any":
+                finalResult = " won " + str(ws) + " out of " + str(len(gameList)) + " games (" + str(round(float(ws)/len(gameList), 2)*100) + "%)"
+            if performance == "any":
+                finalPerf = ""
+            print(playerName + finalTeam + finalTf + finalResult + finalPerf + ".\n")
+            # Report player's career winning/losing percentage and compare!
+        oneOrMany = "a game from the list"
+        if len(gameList) == 1:
+            oneOrMany = "the game"
+        while (True):
+            repAns = input("Do you want to analyze " + oneOrMany + "? (y or n or quit)\n\n")
+            if repAns.lower() == "y":
+                if len(gameList) != 1:
+                    gameNo = input("\nWhich game from the list would you like to analyze?\n\n")
+                    pickedGame = gameList[int(gameNo)-1]
+                else:
+                    pickedGame = gameList[0]
+                break
+            elif repAns.lower() == "n":
+                goBack = True
+                break
+            elif repAns.lower() == "quit":
+                print("\nQuitting...\n")
+                quit()
+            else:
+                print("\nI'm sorry, I didn't quite get that.\n")
     else:
+        if not rand:
+            while (True):
+                amendAns = input("Sorry, no games found. Would you like to amend your search? (y or n or quit)\n\n")
+                if amendAns.lower() == "y":
+                    specs.clear()
+                    amend = True
+                    print()
+                    break
+                elif amendAns.lower() == "n":
+                    specs.clear()
+                    goBack = True
+                    print()
+                    break
+                elif amendAns.lower() == "quit":
+                    print("\nQuitting...\n")
+                    break
+                    quit()
+                else:
+                    print("\nI'm sorry, I didn't quite get that.\n")
+        else:
+            ans2 = "random"
+            specs.clear()
         pickedGame = random.randint(0, len(gameData)-1)
-        print("Sorry, no games found. Picking random game:\n")
-        specs.clear()
-        ans2 = "random"
 
     # display analysis of picked game
+    q = ""
     if wReason[0][0]:
         specs.append(("winReason", wReason[0][1] + ":" + wReason[0][2]))
-    display(True, gameList, pickedGame, gameData, teamData, gameDetails, playerInfo, ans1, ans2, specs)
+    if not amend and not goBack and not rand:
+        q = "y"
+        display(True, gameList, pickedGame, gameData, teamData, gameDetails, playerInfo, ans1, ans2, specs, q)
+    elif not rand:
+        q = "n"
+        display(True, gameList, pickedGame, gameData, teamData, gameDetails, playerInfo, ans1, ans2, specs, q)
+    else:
+        display(True, gameList, pickedGame, gameData, teamData, gameDetails, playerInfo, ans1, ans2, specs, q)
 
+# gets general database info stored
 def main():
     print(RED + "Reading in game database...\n", RESET)
     folder = sys.argv[1]
@@ -933,3 +1331,4 @@ def main():
    
 if __name__ == '__main__':
     main()
+
