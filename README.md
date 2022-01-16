@@ -9,18 +9,24 @@ There are seven parameters that can be filled out to narrow down a search:
 4. home_team: games with a certain home team
 5. away_team: games with a certain away team
 6. winReason: games won due to a certain statistical difference 
-  - Answer in the format "home/away:stat"
+  - Answer in the format "home:STAT" or "away:STAT"
+  - A "stat" can be any of the following:
+  - ("PTS","FGM","FGA","FG_PCT","FG3M","FG3A","FG3_PCT","FTM","FTA","FT_PCT","OREB","DREB",
+  - "REB","AST", "STL","BLK","TO","PF","+/-")
   - Answering "any" anywhere will tell the engine not to specify in that department
   - E.g. "home:REB", "home:any", "any:REB"
-7. playerPerformance: games where a certain player met certain criteria
-  - Answer in the format "playerName:stat>number" (or <)
+  - Note: Entering a winReason parameter MUST be accompanied by another search parameter
+7. ptpr: short for "Player, Team, Performance, Result"
+  - Answer in the format "PlayerName:Team:STAT(< or >)Number:(W or L)"
   - Answering "any" anywhere will tell the engine not to specify in that department
-  - E.g. "Marcus Smart:FGA>11", "any:FGA>11", "Marcus Smart:any"
+  - E.g. "Marcus Smart:Celtics:FGA>11:W", "any:Celtics:FGA>11:L", "Marcus Smart:any:any:any"
+  - Use the below format to bring up all of a player's games:
+  - "PlayerName:career"
 
 Trends in the NBA can be discovered and analyzed, leading to player and team insights.
 
 This is still a work in progress. The updates I am currently making are listed in the large comment section 
-inside the "welcome" function. As of 6/7/21, anything about the NBA from 2004-2021 can be searched and studied.
+at the top of the python file. As of 6/7/21, anything about the NBA from 2004-2021 can be searched and studied.
 I plan on re-implementing this search engine on a more visual framework in order to feature graphs that are able 
 to display trends and correlations.
 
