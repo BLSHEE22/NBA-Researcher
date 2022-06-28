@@ -1,8 +1,8 @@
 ### TODO ###
-    # reject invalid team
     # playoff games on the game table should be a different color
     # add more color encoding to the statistical report
-    # have "performance" part of PTPR handle equations. And perhaps relations to other players!
+    # ptpr should be able to track multiple statlines
+    # have "performance" be part of PTPR handle equations. And perhaps relations to other players!
     # Add "huck" index, where a player's FGA can get too high where it yields a losing % > career losing %
     # - minimum # of games per FGA# must be 10% of player's total career games
     # Add "rivalry" feature, measures competitiveness of matchups
@@ -12,14 +12,12 @@
     # 'prove' category
     # change year to season
     # team, opp_team (instead of home_team, away_team)
-    # don't pick randomly from final gameList, iterate through (pass i to newSearch) or random no rep
-    # reject invalid team name
+    # redisplay gameList after first analysis
     # get below 800 lines
     # speed up winReason (use sets)
     # display team's record for that season
     # be able to look for games that contain more than one player (differentiate teammates vs. matchups)
     # calculate player or team avg. of a statistic, either all-time or season-based
-    # display stats such as BLK and STL if they are higher than either REB or AST
     # look for games with triple-double scorers
     # CONDENSE EVERYTHING!!!!
 
@@ -623,15 +621,15 @@ def welcome(gameData, attributes, teamData, gameDetails, playerInfo, playerData)
         # replay prompt to analyze a new game ---------------------------------------------------------
         def newSearch(msg, s, n, specs):
             replay = ""
-            prompt = msg + "Would you like to analyze another "
+            prompt = msg + YELLOW + "Would you like to analyze another "
             for x in specs:
                 prompt += str(x[0]) + "=" + str(x[1])
                 if x != specs[len(specs)-1]:
                     prompt += ", "
-            if prompt == msg + "Would you like to analyze another ":
+            if prompt == msg + YELLOW + "Would you like to analyze another ":
                 prompt += "random"
             if s == "random":
-                replay = input(prompt + " game? (y or n or quit)\n\n")
+                replay = input(prompt + " game? (y or n or quit)\n\n" + RESET)
                 if replay.lower() == 'y': 
                     newGameI = random.randint(0, len(gameData)-1)
                     print()
@@ -644,9 +642,9 @@ def welcome(gameData, attributes, teamData, gameDetails, playerInfo, playerData)
                     quit()
                 else:
                     print()
-                    newSearch("I'm sorry, I didn't quite get that. ", s ,n, specs)
+                    newSearch(YELLOW + "I'm sorry, I didn't quite get that. " + RESET, s ,n, specs)
             else:
-                replay = input(prompt + " game? (y or n or quit)\n\n")
+                replay = input(prompt + " game? (y or n or quit)\n\n" + RESET)
                 if replay.lower() == 'y': 
                     if len(gameList) > 1:
                         for i in range(len(gameList)):
@@ -671,7 +669,7 @@ def welcome(gameData, attributes, teamData, gameDetails, playerInfo, playerData)
                     quit()
                 else:
                     print()
-                    newSearch("I'm sorry, I didn't quite get that. ", s ,n, specs)
+                    newSearch(YELLOW + "I'm sorry, I didn't quite get that. " + RESET, s ,n, specs)
         
         pickedGame = gameI
         game = gameData[pickedGame]
@@ -763,7 +761,7 @@ def welcome(gameData, attributes, teamData, gameDetails, playerInfo, playerData)
                 elif inp == "quit":
                     print("\nQuitting... \n")
                 else:
-                    print("\nI'm sorry, I didn't quite get that.\n")
+                    print("\n" + YELLOW + "I'm sorry, I didn't quite get that.\n" + RESET)
                     studyGame(ques)
 
             if q == "y" or q == "n":
@@ -788,49 +786,72 @@ def welcome(gameData, attributes, teamData, gameDetails, playerInfo, playerData)
             else:
                 inpString += str(searchOptions[i]) + "=" + str(catList[i]) + ", "
         inpString += str(searchOptions[len(searchOptions)-1]) + "\n\n"
-        if ans != 'go' or (ans == 'go' and not specs): 
+        if ans != 'go' or (ans == 'go' and not specs and wReason[0] == False): 
             if ans != 'go':
                 ans3 = input(inpString).lower()
             else:
                 ans3 = "random game"
             if ans3 in searchOptions: 
                 if ans3 == "random game":
-                    print("\n" + BOLDW + "A random game will be chosen." + RESET + "\n")
+                    print("\n" + YELLOW + "A random game will be chosen." + RESET + "\n")
                     ans2 = "random"
                     pickedGame = random.randint(0, len(gameData)-1)
                     print("Searching...\n")
                     return 
                     # completeSearch("go")
                 else: 
-                    ans2 = input("\nWhich " + ans3 + " would you like to select?\n\n")
+                    ans2 = input(YELLOW + "\nWhich " + ans3 + " would you like to select?\n\n" + RESET)
                     print()
                     if ans3 == 'month': 
                         if ans2 in monthNames:
                             catList[searchOptions.index(ans3)] = "*" + ans2 + "*"
+                            print(YELLOW + "You have selected " + ans2 + " as a month." + RESET + "\n")
                             ans2 = monthNums[monthNames.index(ans2)]
-                            print("ans3: " + ans3)
-                            print("ans : " + ans)
-                            print(catList)
-                            if len(specs) != 0 and ans3 == ans and ans3 not in catList:
+                            #print("ans3: " + ans3)
+                            #print("ans : " + ans)
+                            #print(catList)
+                            if specs and ans3 == ans and ans3 not in catList:
                                 specs.remove(specs[len(specs)-1])
                             specs.append((ans3, ans2)) 
-                            completeSearch(ans3) 
                         else:
-                            print(BOLDW + "That's not a valid month." + RESET + "\n")
-                            completeSearch(ans3) 
+                            print(YELLOW + "That's not a valid month." + RESET + "\n")
+                        completeSearch(ans3) 
                     elif ans3 == 'year':
                         if ans2 in validYears:
                             catList[searchOptions.index(ans3)] = "*" + ans2 + "*"
-                            if len(specs) != 0 and ans3 == ans and ans3 not in catList:
+                            if specs and ans3 == ans and ans3 not in catList:
                                 specs.remove(specs[len(specs)-1])
                             specs.append((ans3, ans2)) 
-                            completeSearch(ans3) 
+                            print(YELLOW + "You have chosen the year " + ans2 + "." + RESET + "\n")
                         else:
-                            print(BOLDW + "That's not a valid year." + RESET + "\n")
-                            completeSearch(ans3)
+                            print(YELLOW + "That's not a valid year." + RESET + "\n")
+                        completeSearch(ans3)
+                    elif ans3 == 'day':
+                        try:
+                            if int(ans2) > 0 and int(ans2) < 32:
+                                catList[searchOptions.index(ans3)] = "*" + ans2 + "*"
+                                if specs and ans3 == ans and ans3 not in catList:
+                                    specs.remove(specs[len(specs)-1])
+                                specs.append((ans3, ans2)) 
+                                print(YELLOW + "You have chosen " + ans2 + " as a day." + RESET + "\n")
+                            else:
+                                print(YELLOW + "That's not a valid day." + RESET + "\n")
+                                
+                        except:
+                            print(YELLOW + "That's not a valid day." + RESET + "\n")
+                        completeSearch(ans3)
+                    elif ans3 == 'home_team' or ans3 == 'away_team':
+                        if ans2 in {x[5] for x in teamData}:
+                            catList[searchOptions.index(ans3)] = "*" + ans2 + "*"
+                            if specs and ans3 == ans and ans3 not in catList:
+                                specs.remove(specs[len(specs)-1])
+                            specs.append((ans3, ans2))
+                        else:
+                            print(YELLOW + "That's not a valid team." + RESET + "\n")
+                        completeSearch(ans3)
                     else:
                         # if newly entered searchOption is already lingering in specs, update it
-                        if len(specs) != 0 and ans3 == ans and ans3 not in catList:
+                        if specs and ans3 == ans and ans3 not in catList:
                             specs.remove(specs[-1])
                             catList[searchOptions.index(ans3)] = "*" + ans2 + "*"
                         # don't append special categories
@@ -839,25 +860,66 @@ def welcome(gameData, attributes, teamData, gameDetails, playerInfo, playerData)
                             catList[searchOptions.index(ans3)] = "*" + ans2 + "*" 
                         elif ans3 == "ptpr":
                             # perf = [True, ans2.split(":")[0], ans2.split(":")[1]]
-                            if ans2.count(":") == 3 or ":career" in ans2: 
-                                specs.append((ans3, ans2))
-                                catList[searchOptions.index(ans3)] = "*" + ans2 + "*"
+                            allPlayers = {x[0] for x in playerData}
+                            anyPMode = False
+                            anyTMode = False
+                            careerMode = False
+                            if ans2.count(":") > 0:
+                                wlTrans = {"W": " and won", "L": " and lost", "any": ""}
+                                a2Parts = ans2.split(":")
+                                tTrans = {True: "", False: " for the " + a2Parts[1]}
+                                if ans2.count(":") == 1 and a2Parts[1] == "career":
+                                    careerMode = True
+                                    specs.append((ans3, ans2))
+                                    catList[searchOptions.index(ans3)] = "*" + ans2 + "*"
+                                    print(YELLOW + "You want to look all games that feature " + a2Parts[0] + ".\n" + RESET)
+                                if a2Parts[0] == "any":
+                                    anyPMode = True 
+                                if a2Parts[1] == "any":
+                                    anyTMode = True 
+                                if a2Parts[0] in allPlayers or anyPMode:
+                                    if a2Parts[1] in {x[5] for x in teamData} or anyTMode:
+                                        if "<" in a2Parts[2] or anyTMode:
+                                            if a2Parts[2].split("<")[0] in legalPStats or anyTMode:
+                                                specs.append((ans3, ans2))
+                                                catList[searchOptions.index(ans3)] = "*" + ans2 + "*"
+                                                print(YELLOW + "You want to look at games" + tTrans[anyTMode] + " where "
+                                                + a2Parts[0] + " performed " + a2Parts[2] + wlTrans[a2Parts[3]] + ".\n" + RESET)
+                                            else:
+                                                print(YELLOW + "That's not a valid stat. Legal stats are shown below:\n" + str(legalStats) + RESET + "\n")
+                                        elif ">" in a2Parts[2] or anyTMode:
+                                            if a2Parts[2].split(">")[0] in legalPStats or anyTMode:
+                                                specs.append((ans3, ans2))
+                                                catList[searchOptions.index(ans3)] = "*" + ans2 + "*"
+                                                print(YELLOW + "You want to look at games" + tTrans[anyTMode] + " where "
+                                                + a2Parts[0] + " performed " + a2Parts[2] + wlTrans[a2Parts[3]] + ".\n" + RESET)
+                                            else:
+                                                print(YELLOW + "That's not a valid stat. Legal stats are shown below:\n" + str(legalStats) + RESET + "\n")
+                                    elif not careerMode:
+                                        print(YELLOW + "That's not a valid team." + RESET + "\n")
+                                else:
+                                    print(YELLOW + "That's not a valid player." + RESET + "\n")
                             else:
-                                print(BOLDW + "Please answer in the format 'Player_name:Team:Performance:Result'." + RESET + "\n")
-                                print(BOLDW + "You can also use the format 'Player_name:career' for all games played by the player." + RESET + "\n")
+                                print(YELLOW + "Please answer in the format 'Player Name:Team:Performance:Result'." + RESET + "\n")
+                                print(YELLOW + "You can also use the format 'Player Name:career' for all games played by the player." + RESET + "\n")
                         elif ans3 == "win_reason":
                             if ":" in ans2:
-                                wReason[0] = (True, ans2.split(":")[0], ans2.split(":")[1])
-                                catList[searchOptions.index(ans3)] = "*" + ans2 + "*"
+                                if ans2.split(":")[1] in legalStats:
+                                    wReason[0] = (True, ans2.split(":")[0], ans2.split(":")[1])
+                                    catList[searchOptions.index(ans3)] = "*" + ans2 + "*"
+                                    print(YELLOW + "You have chosen " + ans2.split(":")[0] + " games that were "
+                                    + "won because of " + ans2.split(":")[1] + "." + RESET + "\n")
                             elif ans2 in legalStats:
                                 wReason[0] = (True, "any", ans2)
                                 catList[searchOptions.index(ans3)] = "*" + ans2 + "*"
+                                print(YELLOW + "You have chosen games that were "
+                                    + "won because of " + ans2 + "." + RESET + "\n")
                             else:
-                                print(BOLDW + "Please answer using the format \"home/away:stat\"." + RESET + "\n")
+                                print(YELLOW + "Please answer using the format \"home/away:stat\"." + RESET + "\n")
                         completeSearch(ans3) 
             elif ans3 != 'go':
                 if ans3 == "random":
-                    print("\nA random game will be chosen.\n")
+                    print("\n" + YELLOW + "A random game will be chosen." + RESET + "\n")
                     ans2 = "random"
                     pickedGame = random.randint(0, len(gameData)-1)
                     completeSearch("go")
@@ -865,7 +927,7 @@ def welcome(gameData, attributes, teamData, gameDetails, playerInfo, playerData)
                     print("\nQuitting... \n")
                     quit()
                 else:
-                    print("\nI'm sorry, I didn't quite get that.\n") 
+                    print("\n" + YELLOW + "I'm sorry, I didn't quite get that.\n" + RESET) 
                     completeSearch(ans3)
             else:
                 print()
@@ -963,6 +1025,8 @@ def welcome(gameData, attributes, teamData, gameDetails, playerInfo, playerData)
     catList = ["?","?","?","?","?","?","?","?","?"]
     searchI = [0,0,0,3,4,1,1]
     legalStats = ["FG_PCT","FG3_PCT","FT_PCT","FTA","AST","REB","STL","BLK","TO"]
+    legalPStats = ["MIN","FGM","FGA","FG_PCT","FG3M","FG3A","FG3_PCT","FTM","FTA",
+                   "FT_PCT","OREB","DREB","REB","AST","STL","BLK","TO","PF","PTS","PLUS_MINUS"]
     validYears = [str(2002 + i) for i in range(1, 20)]
     monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"]
     monthNums = ["01","02","03","04","05","06","07","08","09","10","11","12"]
@@ -1258,12 +1322,27 @@ def welcome(gameData, attributes, teamData, gameDetails, playerInfo, playerData)
         oneOrMany = "a game from the list"
         if len(gameList) == 1:
             oneOrMany = "the game"
-        while (True):
-            repAns = input("Do you want to analyze " + oneOrMany + "? (y or n or quit)\n\n")
+        while True:
+            gamePicked = False
+            repAns = input(YELLOW + "Do you want to analyze " + oneOrMany + " (y or n or quit)?\n\n" + RESET)
             if repAns.lower() == "y":
                 if len(gameList) != 1:
-                    gameNo = input("\nWhich game from the list would you like to analyze?\n\n")
-                    pickedGame = gameList[int(gameNo)-1]
+                    while not gamePicked:
+                        gameNo = input(YELLOW + "\nWhich game from the list would you like to analyze?\n\n" + RESET)
+                        try: 
+                            if int(gameNo) > 0 and int(gameNo) < len(gameList)+1:
+                                pickedGame = gameList[int(gameNo)-1]
+                                gamePicked = True
+                            else:
+                                print(YELLOW + "\nPlease enter a number in the range 1-" + str(len(gameList)) + "." + RESET)
+                        except:
+                            if gameNo.lower() == "any":
+                                randGame = random.randrange(len(gameList)-1)
+                                pickedGame = gameList[randGame]
+                                print("\n" + YELLOW + "Game " + str(randGame+1) + " chosen!\n" + RESET)
+                                gamePicked = True
+                            else:
+                                print(YELLOW + "\nPlease enter a number in the range 1-" + str(len(gameList)) + "." + RESET)
                 else:
                     pickedGame = gameList[0]
                 break
@@ -1274,10 +1353,10 @@ def welcome(gameData, attributes, teamData, gameDetails, playerInfo, playerData)
                 print("\nQuitting...\n")
                 quit()
             else:
-                print("\nI'm sorry, I didn't quite get that.\n")
+                print("\n" + YELLOW + "I'm sorry, I didn't quite get that.\n" + RESET)
     else:
         if not rand:
-            while (True):
+            while True:
                 amendAns = input("Sorry, no games found. Would you like to amend your search? (y or n or quit)\n\n")
                 if amendAns.lower() == "y":
                     specs.clear()
@@ -1294,7 +1373,7 @@ def welcome(gameData, attributes, teamData, gameDetails, playerInfo, playerData)
                     break
                     quit()
                 else:
-                    print("\nI'm sorry, I didn't quite get that.\n")
+                    print("\n" + YELLOW + "I'm sorry, I didn't quite get that.\n" + RESET)
         else:
             ans2 = "random"
             specs.clear()
@@ -1331,4 +1410,3 @@ def main():
    
 if __name__ == '__main__':
     main()
-
