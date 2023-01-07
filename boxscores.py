@@ -2,18 +2,17 @@
     # playoff games on the game table should be a different color
     # add more color encoding to the statistical report
     # ptpr should be able to track multiple statlines
-    # have "performance" be part of PTPR handle equations. And perhaps relations to other players!
+    # have "performance" part of PTPR handle equations. And perhaps relations to other players!
     # Add "huck" index, where a player's FGA can get too high where it yields a losing % > career losing %
     # - minimum # of games per FGA# must be 10% of player's total career games
-    # Add "rivalry" feature, measures competitiveness of matchups
-    # Ask if the user wants to amend their search or start a new one
+    # Add "rivalry" heuristic, measures competitiveness of matchups
+    # Ask if the user wants to AMEND their search or start a new one
+    # >>>>>>> redisplay gameList after first analysis
     # SPLIT UP DISPLAY FUNC
     # PROVE implications: e.g., Marcus Smart:FGA>14 => L (calculate percent chance)
     # 'prove' category
     # change year to season
-    # team, opp_team (instead of home_team, away_team)
-    # redisplay gameList after first analysis
-    # get below 800 lines
+    # get below 800 lines (hahahaha)
     # speed up winReason (use sets)
     # display team's record for that season
     # be able to look for games that contain more than one player (differentiate teammates vs. matchups)
@@ -68,7 +67,7 @@ def analyze(displayed, home, away, game, homePlayers, awayPlayers, playerInfo, h
     # contains relevant i's of player data
     rel = [7,8,10,9,1,11,12]
     # contains relevant i's of MVP data
-    MVPrel = [5,26,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,27]
+    MVPrel = [5,27,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,28] # added 1 after 5
     # contains i's for accessing/storing stat data
     statIndices = [16,22,23,24]
     statStoreI = [11,14,15,16]
@@ -88,6 +87,8 @@ def analyze(displayed, home, away, game, homePlayers, awayPlayers, playerInfo, h
     # gather home and away stat data as well as find MVP
     def storeStats(players, maxScore, MVP, data, reqMVP): 
         for x in players:
+            #print(homeMVP)
+            #print(awayMVP)
             if x[5] == reqMVP[0]:
                 for i in range(0, len(reqMVP)-1):
                     reqMVP[i] = x[MVPrel[i]]
@@ -96,10 +97,10 @@ def analyze(displayed, home, away, game, homePlayers, awayPlayers, playerInfo, h
                 else:
                     reqMVP[-1] = "away"
             # check if player has the maxScore
-            if x[26] == "": 
+            if x[27] == "": 
                 maxScore += 0 
-            elif int(float(x[26])) > maxScore: 
-                maxScore = int(float(x[26])) 
+            elif int(float(x[27])) > maxScore: 
+                maxScore = int(float(x[27])) 
                 for i in range(0, len(MVP)):
                     MVP[i] = x[MVPrel[i]]
             for j in range(0, len(statIndices)):
@@ -182,6 +183,7 @@ def analyze(displayed, home, away, game, homePlayers, awayPlayers, playerInfo, h
         req1 = True
         req2 = True
         intFloat = 0
+        #print(MVP)
         if req:
             if reqStat != "":
                 if reqStat == "FG_PCT" or reqStat == "FG3_PCT" or reqStat == "FT_PCT":
@@ -413,8 +415,9 @@ def analyze(displayed, home, away, game, homePlayers, awayPlayers, playerInfo, h
         madeI = 0
         attI = 0
         minAtt = 0
-        # FGM, FGA, FTA, FG3A
-        if playersI == 11 or playersI == 14 or playersI == 16 or playersI == 17:
+        floatStats = [11,12,14,15,16,17,18]
+        # FGM,FG_PCT,FGA,FG3_PCT,FTA,FG3A,FT_PCT
+        if playersI in floatStats:
             if playersI == 16:
                 attI = playersI
                 minAtt = 5 # FTA
@@ -423,7 +426,7 @@ def analyze(displayed, home, away, game, homePlayers, awayPlayers, playerInfo, h
                 minAtt = 4 # FG3A
             else:
                 attI = playersI - 1
-                minAtt = 5 # FGA
+                minAtt = 5 # FGM,FG_PCT,FGA,FG3_PCT,FT_PCT
             madeI = attI - 1
 
         notableData = []
@@ -454,7 +457,7 @@ def analyze(displayed, home, away, game, homePlayers, awayPlayers, playerInfo, h
 
         if maxNotableStat == 0 or maxNotableStat > 100:
             keyPlayer.append("N/A")
-        elif playersI == 11 or playersI == 14 or playersI == 16 or playersI == 17:
+        elif playersI == 12 or playersI == 15 or playersI == 16 or playersI == 18:
             if playersI != 16:
                 maxNotableStat = round(maxNotableStat*100,2)
             else:
@@ -682,7 +685,7 @@ def welcome(gameData, attributes, teamData, gameDetails, playerInfo, playerData)
         away = ""
 
         # classify the home and away team
-        for i in range(len(teamData)-4):
+        for i in range(len(teamData)): # -4 ????
             teams.append(teamData[i][5])
             if teamData[i][1] == game[3]:
                 home = teamData[i][5]
@@ -1027,7 +1030,7 @@ def welcome(gameData, attributes, teamData, gameDetails, playerInfo, playerData)
     legalStats = ["FG_PCT","FG3_PCT","FT_PCT","FTA","AST","REB","STL","BLK","TO"]
     legalPStats = ["MIN","FGM","FGA","FG_PCT","FG3M","FG3A","FG3_PCT","FTM","FTA",
                    "FT_PCT","OREB","DREB","REB","AST","STL","BLK","TO","PF","PTS","PLUS_MINUS"]
-    validYears = [str(2002 + i) for i in range(1, 20)]
+    validYears = [str(2002 + i) for i in range(1, 22)]
     monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"]
     monthNums = ["01","02","03","04","05","06","07","08","09","10","11","12"]
     specs = [] # holds tuple responses to searchOptions, (category, response)
@@ -1121,7 +1124,7 @@ def welcome(gameData, attributes, teamData, gameDetails, playerInfo, playerData)
         rand = True
     
     allTeams = []
-    for i in range(len(teamData)-4):
+    for i in range(len(teamData)): # -4 ???
         allTeams.append(teamData[i][5])
     sortTeams = sorted(allTeams)
 
