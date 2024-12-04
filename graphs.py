@@ -14,26 +14,20 @@ games  = pd.read_csv('data/games.csv')
 ############################################################
 
 df = games_details
-columns = df.columns.values.tolist()
+# make data
 player1 = input("Player 1?\n")
 player2 = input("Player 2?\n")
-stephStatAvgs = df.query("PLAYER_NAME == @player1").loc[:,["PTS","FG3M","FG3A","REB","AST","STL","BLK"]].mean()
-lebronStatAvgs = df.query("PLAYER_NAME == @player2").loc[:,["PTS","FG3M","FG3A","REB","AST","STL","BLK"]].mean()
-#plt.show()
-print(stephStatAvgs)
-print(lebronStatAvgs)
+player1CareerAvgs = round(df.query("PLAYER_NAME == @player1").loc[:,["PTS","FG3M","FG3A","REB","AST","STL","BLK"]].mean(), 2)
+player2CareerAvgs = round(df.query("PLAYER_NAME == @player2").loc[:,["PTS","FG3M","FG3A","REB","AST","STL","BLK"]].mean(), 2)
+# plot
+fig, ax = plt.subplots()
+ax.bar(["PTS","FG3M","FG3A","REB","AST","STL","BLK"], player1CareerAvgs, label=player1, width=-0.3, edgecolor="white", linewidth=2, align="edge")
+ax.bar_label(ax.containers[0], fontsize=6)
+ax.bar(["PTS","FG3M","FG3A","REB","AST","STL","BLK"], player2CareerAvgs, label=player2, width=0.3, edgecolor="white", linewidth=2, align="edge")
+ax.bar_label(ax.containers[1], fontsize=6)
+ax.legend(title="Player")
+ax.set_title("Career Averages")
+plt.show()
 
-
-
-# display(Markdown('#### Stats comparison between Lebron James and overall statistics'))
-# fig, ax = plt.subplots(figsize=(18, 9))
-
-# ax = plt.subplot(121, polar=True)
-# ax.set_title('Percentage statistics')
-# radar_plot(ax=ax, df=stats_prct, max_val=1)
-
-# ax = plt.subplot(122, polar=True)
-# ax.set_title('Others statistics')
-# radar_plot(ax=ax, df=stats_other, max_val=10)
-
-# plt.show()
+# TODO
+# player1 vs. the average G/F/C
