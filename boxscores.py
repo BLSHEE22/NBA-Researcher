@@ -681,6 +681,12 @@ def welcome(gameData, attributes, teamData, gameDetails, playerInfo, playerData)
         teams = []
         teamColors = ['45m','106m','160m','88m','34m','203m','86m','9m','198m','87m','148m','98m','202m','129m','33m',
         '27m','153m','220m','226m','216m','198m','1m','196m','245m','214m','166m','46m','124m','221m','69m']
+        """
+        NOH = 136m
+        NJN = 110m
+        SEA = 70m
+        NOK = 30m
+        """
         home = ""
         away = ""
 
@@ -942,6 +948,7 @@ def welcome(gameData, attributes, teamData, gameDetails, playerInfo, playerData)
     # create set of all player performances, keep those that meet criteria
     def createPlayerSet(on):
         # perfData = ["Ben Simmons", "76ers", "TO>5", "L"]
+        print(perfData)
         teamTrans = {x[4] : x[5] for x in teamData}
         gameDetSet = {"1"}
         if playerParam:
@@ -957,7 +964,6 @@ def welcome(gameData, attributes, teamData, gameDetails, playerInfo, playerData)
                         addString += "any:"
                     else:
                         addString += teamTrans[gameDetails[i][2]] + ":"
-
                     if ">" in perfData[2]:
                         pStat = perfData[2].split(">")[0]
                         statVal = perfData[2].split(">")[1]
