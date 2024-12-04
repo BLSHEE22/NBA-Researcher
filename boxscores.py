@@ -713,9 +713,9 @@ def welcome(gameData, attributes, teamData, gameDetails, playerInfo, playerData)
         playoffMonths = ["04","05"]
         bubblePlayoffMonths = ["08","09"]
         years = ["2003","2004","2005","2006","2007","2008","2009","2010",
-        "2011","2012","2013","2014","2015","2016","2017","2018","2019","2020","2021"]
+        "2011","2012","2013","2014","2015","2016","2017","2018","2019","2020","2021","2022"]
         playoffStartDates = [18, 16, 22, 22, 20, 19, 17, 16, 15, 27, 19, 18, 17, 15, 14, 13, 12, 16, 21]
-        finalStartDates = [3, 5, 8, 7, 6, 4, 3, 2, 0, 11, 5, 4, 3, 1, 0, 0, 0, 0, 0]
+        finalStartDates = [3, 5, 8, 7, 6, 4, 3, 2, 0, 11, 5, 4, 3, 1, 0, 0, 0, 0, 0, 0]
         gameYear = gameData[pickedGame][0].split("-")[0]
         gameMonth = gameData[pickedGame][0].split("-")[1]
         gameDay = gameData[pickedGame][0].split("-")[2]
