@@ -1142,6 +1142,8 @@ def welcome(gameData, attributes, teamData, gameDetails, playerInfo, playerData)
     # get wNick, lNick, wColor, lColor, and you're free from extra display!!!
     for x in gameList:  
         homePts = gameData[x][7]
+        if homePts == '':
+            continue
         homeTeam = gameData[x][3]
         awayPts = gameData[x][14]
         awayTeam = gameData[x][4]
