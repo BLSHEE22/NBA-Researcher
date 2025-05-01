@@ -1,4 +1,4 @@
-# NBA-Researcher
+# NBA Researcher
 Search for specific NBA games, happenings, and patterns from 2004-2021 (March 2021).
 
 There are seven parameters that can be filled out to narrow down a search:
